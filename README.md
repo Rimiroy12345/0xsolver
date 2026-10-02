@@ -21,7 +21,9 @@ Cases persist in the Docker `cases` volume. `docker compose down` preserves case
 
 ## What it can attempt
 
-Uploaded-file challenges: encodings, basic cryptography, archive inspection, metadata, packet captures, image analysis, binary inspection, and Python-based solving. Tools include file, strings, xxd, ExifTool, tshark, 7z, unzip, objdump, readelf, GDB and GCC. Python includes SymPy, PyCryptodome, Pillow, NumPy, pwntools and Z3.
+Uploaded-file challenges: encodings, basic cryptography, archive inspection, metadata, packet captures, image analysis, binary inspection, and Python-based solving. Automatic checks detect ASCII bitstrings, pack them into bytes, identify the recovered file and OCR common images. OCR may misread characters; use the case artifact downloads to view originals. Bitstring preflight supports files up to 256 MB and runs within the command timeout. Repeated file, xxd and strings inspections reuse their previous output.
+
+Tools include file, strings, xxd, ExifTool, tshark, 7z, unzip, objdump, readelf, GDB and GCC. Python includes SymPy, PyCryptodome, Pillow, NumPy, pwntools and Z3.
 
 This first version has **no internet access in the analysis worker**. Live web/pwn targets and online OSINT are not supported yet. Tools such as SageMath, Ghidra, Volatility and specialist steganography tools are not included. Large memory images may exceed the upload or worker memory limits. A model can suggest incorrect approaches; a completed run does not imply a solved challenge. Validate candidate flags with the challenge platform.
 

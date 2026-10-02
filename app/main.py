@@ -97,3 +97,15 @@ def recover():
             c=json.loads(p.read_text())
             if c["status"]=="running": c["status"]="interrupted"; save_case(c)
         except (OSError,ValueError,KeyError): pass
+
+@app.get("/api/cases/{cid}/artifacts")
+def artifacts(cid: str):
+    read_case(cid)
+    work=case_path(cid)/"work"
+    return [{"name":p.name,"size":p.stat().st_size} for p in work.iterdir() if p.is_file() and not p.is_symlink()][:100]
+@app.get("/api/cases/{cid}/artifacts/{name}")
+def artifact(cid: str,name: str):
+    read_case(cid)
+    work=(case_path(cid)/"work").resolve(); p=work/name
+    if p.is_symlink() or p.resolve().parent!=work or not p.is_file(): raise HTTPException(404,"File not found")
+    return FileResponse(p,filename=p.name,media_type="application/octet-stream")

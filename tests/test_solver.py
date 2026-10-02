@@ -8,6 +8,27 @@ from app.common import case_path
 from app.engine import Engine, ROLES, bounded_messages, tool_context
 from app.worker import execute
 
+class TriageTests(unittest.TestCase):
+    def test_binary_text_recovers_jpeg_bytes(self):
+        from app.triage import decode_bits
+        import io
+        from PIL import Image
+        image=io.BytesIO(); Image.new('RGB',(8,8),'white').save(image,format='JPEG')
+        original=image.getvalue()
+        with tempfile.TemporaryDirectory() as temp:
+            src=Path(temp)/'unknown';dst=Path(temp)/'decoded'
+            src.write_text('\n'.join(format(x,'08b') for x in original))
+            self.assertEqual(decode_bits(src,dst),len(original))
+            self.assertEqual(dst.read_bytes(),original)
+    def test_invalid_bits_do_not_leave_output(self):
+        from app.triage import decode_bits
+        with tempfile.TemporaryDirectory() as temp:
+            src=Path(temp)/'source';dst=Path(temp)/'decoded'
+            for value in ('01010102','010'):
+                src.write_text(value)
+                with self.assertRaises(ValueError): decode_bits(src,dst)
+                self.assertFalse(dst.exists())
+
 class ContextTests(unittest.TestCase):
     def test_binary_output_and_history_are_bounded(self):
         huge={'output':'01'*6000, 'exit_code':0}
