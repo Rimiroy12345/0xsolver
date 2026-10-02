@@ -5,8 +5,22 @@ os.environ['DATA_ROOT']=TMP.name
 from fastapi.testclient import TestClient
 from app.main import app
 from app.common import case_path
-from app.engine import Engine, ROLES
+from app.engine import Engine, ROLES, bounded_messages, tool_context
 from app.worker import execute
+
+class ContextTests(unittest.TestCase):
+    def test_binary_output_and_history_are_bounded(self):
+        huge={'output':'01'*6000, 'exit_code':0}
+        snippet=json.loads(tool_context(huge))
+        self.assertLessEqual(len(snippet['output']),900)
+        self.assertEqual(len(huge['output']),12000)
+        messages=[{'role':'system','content':'Use tools.'},{'role':'user','content':'Challenge '+('x'*15000)}]
+        for i in range(8):
+            messages.extend([{'role':'assistant','content':'Inspect','tool_calls':[{'id':str(i),'type':'function','function':{'name':'run_command','arguments':'{"command":"strings digits.bin"}'}}]}, {'role':'tool','tool_call_id':str(i),'content':json.dumps(huge)}])
+        bounded=bounded_messages(messages)
+        self.assertLessEqual(len(json.dumps(bounded,ensure_ascii=True).encode()),4000)
+        ids={c['id'] for m in bounded for c in m.get('tool_calls',[])}
+        self.assertTrue(all(m['tool_call_id'] in ids for m in bounded if m['role']=='tool'))
 
 class ExecutionTests(unittest.TestCase):
     def test_timeout_and_output_bound(self):

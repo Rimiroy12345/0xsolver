@@ -29,7 +29,9 @@ This first version has **no internet access in the analysis worker**. Live web/p
 
 Choose a model for each agent under **Agent models & run limits** before starting. All requests go to the same local LM Studio server; there are no cloud fallbacks. Agents run sequentially to reduce load. Model switching relies on LM Studio's just-in-time loading and memory management; the app does not automatically unload previous models. Manually unload unused models when memory is tight.
 
-Defaults: 3 tool rounds per agent, 700 tokens per reply, `/no_think` requested. Large prompts and tool outputs still take time to process on a laptop CPU. You can adjust limits before a run. Use a model that supports tool calling; not every downloaded model does. Stop takes effect between calls; an in-flight model request can take up to five minutes to time out.
+Defaults: 3 tool rounds per agent, 700 tokens per reply, `/no_think` requested. Model prompts use bounded excerpts of tool output and a conservative history budget for an 8,192-token context. Evidence logs retain the worker output (up to its 12,000-byte cap). Agents can inspect omitted sections with targeted commands.
+
+Large prompts and tool outputs still take time to process on a laptop CPU. You can adjust limits before a run. Use a model that supports tool calling; not every downloaded model does. Stop takes effect between calls; an in-flight model request can take up to five minutes to time out.
 
 ## Connection troubleshooting
 
