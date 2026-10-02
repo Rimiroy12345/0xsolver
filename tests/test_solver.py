@@ -27,6 +27,17 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(c.get('/api/cases/'+case['id']+'/export').json()['description'],'Decode this')
             self.assertIn(case['id'],[x['id'] for x in c.get('/api/cases').json()])
             self.assertEqual(c.get('/api/cases/nope').status_code,404)
+    def test_upload_limit_boundary_and_cleanup(self):
+        from unittest.mock import patch
+        from app.main import MAX_UPLOAD_BYTES
+        self.assertEqual(MAX_UPLOAD_BYTES, 1024**3)
+        with TestClient(app) as c, patch('app.main.MAX_UPLOAD_BYTES',8):
+            exact=c.post('/api/cases',data={'description':'boundary'},files=[('files',('a',b'1234')),('files',('b',b'5678'))])
+            self.assertEqual(exact.status_code,200)
+            before=set(Path(TMP.name).iterdir())
+            too_big=c.post('/api/cases',data={'description':'overflow'},files=[('files',('a',b'1234')),('files',('b',b'56789'))])
+            self.assertEqual(too_big.status_code,413)
+            self.assertEqual(set(Path(TMP.name).iterdir()),before)
     def test_empty_challenge_rejected(self):
         with TestClient(app) as c: self.assertEqual(c.post('/api/cases',data={'description':' '}).status_code,400)
 

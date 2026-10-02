@@ -11,6 +11,7 @@ app=FastAPI(title="0xsolver")
 app.mount("/static",StaticFiles(directory=Path(__file__).parent/"static"),name="static")
 BASE=os.getenv("LM_BASE_URL","http://host.docker.internal:1234/v1")
 WORKER=os.getenv("WORKER_URL","http://worker:8001")
+MAX_UPLOAD_BYTES = 1024 * 1024 * 1024
 jobs={}; active=asyncio.Lock()
 def read_case(cid):
     try: return json.loads((case_path(cid)/"case.json").read_text())
@@ -50,7 +51,7 @@ async def create(description: str=Form(...), flag_format: str=Form("flag{...}"),
             with (work/name).open("wb") as out:
                 while chunk:=await f.read(1024*1024):
                     total+=len(chunk)
-                    if total>100*1024*1024: raise HTTPException(413,"Uploads exceed 100 MB")
+                    if total>MAX_UPLOAD_BYTES: raise HTTPException(413,"Uploads exceed 1 GB (1,024 MB)")
                     out.write(chunk)
         case={"id":cid,"title":description.strip().splitlines()[0][:70],"description":description,"flag_format":flag_format[:200],"files":names,"created":time.time(),"status":"ready","events":[]}
         save_case(case); return case

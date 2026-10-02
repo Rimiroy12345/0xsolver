@@ -15,7 +15,9 @@ docker compose up --build -d
 
 Open http://localhost:8000. The first Docker build downloads tools and Python packages and may take several minutes. Later starts use `docker compose up -d`.
 
-Paste a challenge, add its files and flag format, then start an investigation. The interface shows actual commands, outputs, agent handoffs, and errors. Export the case as JSON to keep its evidence. Cases persist in the Docker `cases` volume. `docker compose down` preserves cases; `docker compose down -v` deletes them.
+Paste a challenge, add its files and flag format, then start an investigation. The interface shows actual commands, outputs, agent handoffs, and errors. Export the case as JSON to keep its evidence. Uploads support up to 20 files and 1 GB total (1,024 MB) per case. Files stream to disk; multipart temporary storage and saved uploads can briefly require about twice that disk space. The worker still has a 2 GB RAM limit, so process large files in chunks.
+
+Cases persist in the Docker `cases` volume. `docker compose down` preserves cases; `docker compose down -v` deletes them.
 
 ## What it can attempt
 
